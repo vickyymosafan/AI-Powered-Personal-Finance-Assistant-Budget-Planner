@@ -7,6 +7,14 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
 from app.core.middleware import register_middleware
+
+# Eagerly import ALL ORM models so SQLAlchemy mapper resolves relationships correctly.
+# Without this, string references like "Transaction" may resolve to sqlalchemy internals.
+import app.features.auth.models  # noqa: F401
+import app.features.transactions.models  # noqa: F401
+import app.features.budgets.models  # noqa: F401
+import app.features.analytics.models  # noqa: F401
+
 from app.features.auth.router import router as auth_router
 from app.features.transactions.router import router as transactions_router
 from app.features.budgets.router import router as budgets_router

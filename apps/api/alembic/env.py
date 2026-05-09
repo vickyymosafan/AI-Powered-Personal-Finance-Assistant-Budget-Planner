@@ -12,9 +12,9 @@ from alembic import context
 from sqlalchemy import pool
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
-# Import config and models
+# Import config and model registry (triggers all model imports for autogenerate)
 from app.core.config import settings
-from app.shared.models import Base  # noqa: F401 — triggers all model imports
+from app.shared.models.registry import Base  # noqa: F401
 
 # Alembic Config object
 config = context.config
