@@ -7,5 +7,5 @@ export type {
   LoginRequest,
   RegisterRequest,
   AuthTokens,
-  AuthState,
+  AuthResponse,
 } from './types/auth.types'

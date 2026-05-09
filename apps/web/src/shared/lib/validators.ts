@@ -24,11 +24,11 @@ export const zPasswordConfirm = (refField: string) =>
   )
 
 export const zPositiveNumber = z
-  .number({ invalid_type_error: 'Harus berupa angka' })
+  .number({ message: 'Harus berupa angka' })
   .positive('Harus lebih dari 0')
 
 export const zCurrencyAmount = z
-  .number({ invalid_type_error: 'Harus berupa angka' })
+  .number({ message: 'Harus berupa angka' })
   .min(0, 'Jumlah tidak boleh negatif')
   .max(999_999_999_999, 'Jumlah terlalu besar')
 

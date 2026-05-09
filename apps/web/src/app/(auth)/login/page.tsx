@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { LoginForm } from '@/features/auth/components/LoginForm'
 
 export const metadata: Metadata = {
   title: 'Sign In',
@@ -14,10 +15,7 @@ export default function LoginPage() {
           Sign in to your FinanceAI account
         </p>
       </div>
-      {/* LoginForm will be implemented in features/auth */}
-      <p className="text-center text-xs text-muted-foreground">
-        Login form coming soon
-      </p>
+      <LoginForm />
     </div>
   )
 }

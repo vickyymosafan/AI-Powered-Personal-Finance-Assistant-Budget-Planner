@@ -5,19 +5,18 @@ import { useRouter } from 'next/navigation'
 import { apiClient } from '@/core/api/client'
 import { API_ENDPOINTS } from '@/core/api/endpoints'
 import { useAuthStore } from '../stores/auth.store'
-import type { AuthResponse, LoginRequest } from '../types/auth.types'
+import type { AuthResponse, RegisterRequest } from '../types/auth.types'
 
 /**
- * Login mutation hook
- * Handles: API call → token storage → auth store update → redirect
+ * Register mutation hook
  */
-export function useLogin() {
+export function useRegister() {
   const router = useRouter()
   const { setUser, setTokens } = useAuthStore()
 
   return useMutation({
-    mutationFn: (credentials: LoginRequest) =>
-      apiClient.post<AuthResponse>(API_ENDPOINTS.AUTH.LOGIN, credentials),
+    mutationFn: (credentials: RegisterRequest) =>
+      apiClient.post<AuthResponse>(API_ENDPOINTS.AUTH.REGISTER, credentials),
 
     onSuccess: ({ user, tokens }) => {
       setTokens(tokens.access_token, tokens.refresh_token)
@@ -26,7 +25,7 @@ export function useLogin() {
     },
 
     onError: (error) => {
-      console.error('[useLogin] Error:', error)
+      console.error('[useRegister] Error:', error)
     },
   })
 }

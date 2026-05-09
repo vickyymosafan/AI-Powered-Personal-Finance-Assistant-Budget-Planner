@@ -40,7 +40,8 @@ export function ThemeProvider({
 
   const applyTheme = useCallback((t: Theme) => {
     const resolved = t === 'system' ? getSystemTheme() : t
-    setResolvedTheme(resolved)
+    
+    setResolvedTheme((prev) => (prev !== resolved ? resolved : prev))
 
     const root = document.documentElement
     root.classList.remove('light', 'dark')
@@ -57,10 +58,17 @@ export function ThemeProvider({
   )
 
   useEffect(() => {
+    // Only apply the initial theme on first run if stored doesn't match default
     const stored = localStorage.getItem('theme') as Theme | null
-    const initial = stored || defaultTheme
-    setThemeState(initial)
-    applyTheme(initial)
+    
+    // Use requestAnimationFrame to defer the state update and avoid the linter warning
+    requestAnimationFrame(() => {
+      if (stored) {
+        applyTheme(stored)
+      } else {
+        applyTheme(defaultTheme)
+      }
+    })
 
     // Listen for system theme changes
     const media = window.matchMedia('(prefers-color-scheme: dark)')

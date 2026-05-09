@@ -3,12 +3,8 @@ import { zCurrencyAmount, zIsoDate, zOptionalString } from '@/shared/lib/validat
 import { TRANSACTION_CATEGORIES, TRANSACTION_TYPES } from '@/shared/constants/app.constants'
 
 export const transactionSchema = z.object({
-  type: z.enum(TRANSACTION_TYPES, {
-    required_error: 'Tipe transaksi wajib dipilih',
-  }),
-  category: z.enum(TRANSACTION_CATEGORIES, {
-    required_error: 'Kategori wajib dipilih',
-  }),
+  type: z.enum(TRANSACTION_TYPES, 'Tipe transaksi wajib dipilih'),
+  category: z.enum(TRANSACTION_CATEGORIES, 'Kategori wajib dipilih'),
   amount: zCurrencyAmount,
   description: z.string().min(1, 'Deskripsi wajib diisi').max(255),
   date: zIsoDate,

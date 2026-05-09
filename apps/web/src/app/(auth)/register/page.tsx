@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { RegisterForm } from '@/features/auth/components/RegisterForm'
 
 export const metadata: Metadata = {
   title: 'Create Account',
@@ -14,10 +15,7 @@ export default function RegisterPage() {
           Start managing your finances with AI
         </p>
       </div>
-      {/* RegisterForm will be implemented in features/auth */}
-      <p className="text-center text-xs text-muted-foreground">
-        Register form coming soon
-      </p>
+      <RegisterForm />
     </div>
   )
 }

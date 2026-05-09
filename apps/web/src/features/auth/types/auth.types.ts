@@ -13,12 +13,12 @@ export interface User {
   created_at: string
 }
 
-export interface LoginCredentials {
+export interface LoginRequest {
   email: string
   password: string
 }
 
-export interface RegisterPayload {
+export interface RegisterRequest {
   email: string
   password: string
   full_name: string

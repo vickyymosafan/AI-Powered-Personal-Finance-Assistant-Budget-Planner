@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { ChatWindow } from '@/features/ai-assistant/components/ChatWindow'
 
 export const metadata: Metadata = {
   title: 'AI Assistant',
@@ -14,7 +15,7 @@ export default function AiAssistantPage() {
           Ask anything about your finances
         </p>
       </div>
-      {/* AiChat component will go here */}
+      <ChatWindow />
     </div>
   )
 }

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useSyncExternalStore } from 'react'
 
 type Breakpoint = 'sm' | 'md' | 'lg' | 'xl' | '2xl'
 
@@ -20,17 +20,22 @@ export function useMediaQuery(query: Breakpoint | string): boolean {
   const resolvedQuery =
     query in BREAKPOINTS ? BREAKPOINTS[query as Breakpoint] : query
 
-  const [matches, setMatches] = useState(false)
+  const subscribe = useCallback(
+    (callback: () => void) => {
+      if (typeof window === 'undefined') return () => {}
+      const media = window.matchMedia(resolvedQuery)
+      media.addEventListener('change', callback)
+      return () => media.removeEventListener('change', callback)
+    },
+    [resolvedQuery]
+  )
 
-  useEffect(() => {
-    if (typeof window === 'undefined') return
-    const media = window.matchMedia(resolvedQuery)
-    setMatches(media.matches)
-
-    const handler = (e: MediaQueryListEvent) => setMatches(e.matches)
-    media.addEventListener('change', handler)
-    return () => media.removeEventListener('change', handler)
+  const getSnapshot = useCallback(() => {
+    if (typeof window === 'undefined') return false
+    return window.matchMedia(resolvedQuery).matches
   }, [resolvedQuery])
 
-  return matches
+  const getServerSnapshot = useCallback(() => false, [])
+
+  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot)
 }
