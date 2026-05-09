@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { AnalyticsOverview } from '@/features/analytics/components/AnalyticsOverview'
 
 export const metadata: Metadata = {
   title: 'Analytics',
@@ -14,7 +15,7 @@ export default function AnalyticsPage() {
           Visualize spending trends and financial patterns
         </p>
       </div>
-      {/* SpendingChart, TrendsChart, CategoryBreakdown components will go here */}
+      <AnalyticsOverview />
     </div>
   )
 }
