@@ -20,7 +20,7 @@ class Settings(BaseSettings):
     API_V1_PREFIX: str = "/api/v1"
 
     # Database
-    DATABASE_URL: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/financeai"
+    DATABASE_URL: str = "postgresql+asyncpg://postgres:Admin@localhost:5432/financeai"
 
     # JWT Authentication
     JWT_SECRET_KEY: str = "change-this-in-production"

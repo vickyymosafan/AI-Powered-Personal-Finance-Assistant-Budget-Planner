@@ -1,34 +1,37 @@
 /**
- * Auth feature types
+ * Auth domain types
+ * No Next.js imports allowed in this layer
  */
-export interface LoginRequest {
+
+export interface User {
+  id: string
+  email: string
+  full_name: string
+  avatar_url: string | null
+  currency: string
+  locale: string
+  created_at: string
+}
+
+export interface LoginCredentials {
   email: string
   password: string
 }
 
-export interface RegisterRequest {
-  name: string
+export interface RegisterPayload {
   email: string
   password: string
+  full_name: string
 }
 
 export interface AuthTokens {
   access_token: string
   refresh_token: string
-  token_type: string
+  token_type: 'bearer'
+  expires_in: number
 }
 
-export interface User {
-  id: string
-  name: string
-  email: string
-  avatar_url?: string
-  currency: string
-  created_at: string
-}
-
-export interface AuthState {
-  user: User | null
-  isAuthenticated: boolean
-  isLoading: boolean
+export interface AuthResponse {
+  user: User
+  tokens: AuthTokens
 }

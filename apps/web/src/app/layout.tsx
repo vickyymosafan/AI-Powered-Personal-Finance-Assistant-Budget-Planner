@@ -1,15 +1,18 @@
 import type { Metadata } from 'next'
-import { Inter, Geist } from 'next/font/google'
+import { Geist, Geist_Mono } from 'next/font/google'
 import { AppProviders } from '@/core/providers'
 import { siteConfig } from '@/core/config'
 import './globals.css'
-import { cn } from "@/lib/utils";
+import { cn } from '@/lib/utils'
 
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
-
-const inter = Inter({
+const geistSans = Geist({
   subsets: ['latin'],
-  variable: '--font-inter',
+  variable: '--font-sans',
+})
+
+const geistMono = Geist_Mono({
+  subsets: ['latin'],
+  variable: '--font-mono',
 })
 
 export const metadata: Metadata = {
@@ -35,8 +38,12 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="id" suppressHydrationWarning className={cn("font-sans", geist.variable)}>
-      <body className={`${inter.variable} font-sans antialiased`}>
+    <html
+      lang="id"
+      suppressHydrationWarning
+      className={cn(geistSans.variable, geistMono.variable)}
+    >
+      <body className="font-sans antialiased">
         <AppProviders>{children}</AppProviders>
       </body>
     </html>

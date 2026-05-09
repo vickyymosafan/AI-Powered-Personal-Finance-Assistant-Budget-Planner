@@ -1,26 +1,36 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
+
+type Breakpoint = 'sm' | 'md' | 'lg' | 'xl' | '2xl'
+
+const BREAKPOINTS: Record<Breakpoint, string> = {
+  sm: '(min-width: 640px)',
+  md: '(min-width: 768px)',
+  lg: '(min-width: 1024px)',
+  xl: '(min-width: 1280px)',
+  '2xl': '(min-width: 1536px)',
+}
 
 /**
  * Responsive breakpoint hook
+ * @param breakpoint - Tailwind breakpoint name or custom media query
  */
-export function useMediaQuery(query: string): boolean {
+export function useMediaQuery(query: Breakpoint | string): boolean {
+  const resolvedQuery =
+    query in BREAKPOINTS ? BREAKPOINTS[query as Breakpoint] : query
+
   const [matches, setMatches] = useState(false)
 
   useEffect(() => {
-    const media = window.matchMedia(query)
+    if (typeof window === 'undefined') return
+    const media = window.matchMedia(resolvedQuery)
     setMatches(media.matches)
 
-    const listener = (e: MediaQueryListEvent) => setMatches(e.matches)
-    media.addEventListener('change', listener)
-    return () => media.removeEventListener('change', listener)
-  }, [query])
+    const handler = (e: MediaQueryListEvent) => setMatches(e.matches)
+    media.addEventListener('change', handler)
+    return () => media.removeEventListener('change', handler)
+  }, [resolvedQuery])
 
   return matches
 }
-
-// Convenience hooks
-export const useIsMobile = () => useMediaQuery('(max-width: 768px)')
-export const useIsTablet = () => useMediaQuery('(max-width: 1024px)')
-export const useIsDesktop = () => useMediaQuery('(min-width: 1025px)')
