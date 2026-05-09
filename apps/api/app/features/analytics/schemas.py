@@ -65,3 +65,34 @@ class SavingsGoalListResponse(BaseModel):
     page: int
     page_size: int
     total_pages: int
+
+
+# ── Analytics Schemas ────────────────────────────────────────────
+
+
+class AnalyticsOverviewResponse(BaseModel):
+    total_income: float
+    total_expense: float
+    net_balance: float
+    active_goals_count: int
+    completed_goals_count: int
+
+
+class TrendDataPoint(BaseModel):
+    period: str  # e.g., '2026-05'
+    income: float
+    expense: float
+
+
+class TrendsResponse(BaseModel):
+    trends: list[TrendDataPoint]
+
+
+class CategoryDataPoint(BaseModel):
+    category: str
+    amount: float
+    percentage: float
+
+
+class CategoriesResponse(BaseModel):
+    categories: list[CategoryDataPoint]

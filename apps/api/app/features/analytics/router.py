@@ -12,13 +12,16 @@ from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.features.analytics.models import GoalPriority, GoalStatus
 from app.features.analytics.schemas import (
+    AnalyticsOverviewResponse,
+    CategoriesResponse,
     CreateSavingsGoalRequest,
     SavingsGoalFilterParams,
     SavingsGoalListResponse,
     SavingsGoalResponse,
+    TrendsResponse,
     UpdateSavingsGoalRequest,
 )
-from app.features.analytics.service import SavingsGoalService
+from app.features.analytics.service import AnalyticsService, SavingsGoalService
 
 router = APIRouter()
 
@@ -83,28 +86,34 @@ async def delete_savings_goal(
     await SavingsGoalService.delete(db, user_id, goal_id)
 
 
-# ── Analytics Stubs ─────────────────────────────────────────────
+# ── Analytics Endpoints ─────────────────────────────────────────
 
 
-@router.get("/overview")
-async def get_overview():
-    """Get analytics overview — to be implemented"""
-    return {"message": "Analytics overview"}
+@router.get("/overview", response_model=AnalyticsOverviewResponse)
+async def get_overview(
+    user_id: str = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
+):
+    """Get analytics overview: total income, total expense, active/completed goals count."""
+    return await AnalyticsService.get_overview(db, user_id)
 
 
-@router.get("/spending")
-async def get_spending():
-    """Get spending analytics — to be implemented"""
-    return {"message": "Spending analytics"}
+@router.get("/trends", response_model=TrendsResponse)
+async def get_trends(
+    year: int = Query(..., description="Tahun untuk melihat tren"),
+    user_id: str = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
+):
+    """Get trend bulanan untuk income dan expense pada tahun tertentu."""
+    return await AnalyticsService.get_trends(db, user_id, year)
 
 
-@router.get("/trends")
-async def get_trends():
-    """Get trend analytics — to be implemented"""
-    return {"message": "Trend analytics"}
-
-
-@router.get("/categories")
-async def get_categories():
-    """Get category analytics — to be implemented"""
-    return {"message": "Category analytics"}
+@router.get("/categories", response_model=CategoriesResponse)
+async def get_categories(
+    year: int = Query(..., description="Tahun"),
+    month: int = Query(..., description="Bulan (1-12)", ge=1, le=12),
+    user_id: str = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
+):
+    """Get proporsi pengeluaran berdasarkan kategori untuk bulan tertentu."""
+    return await AnalyticsService.get_spending_categories(db, user_id, year, month)

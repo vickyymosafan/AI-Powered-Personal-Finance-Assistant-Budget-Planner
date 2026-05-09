@@ -9,12 +9,18 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.exceptions import ForbiddenError, NotFoundError
 from app.features.analytics.models import SavingsGoal
 from app.features.analytics.schemas import (
+    AnalyticsOverviewResponse,
+    CategoriesResponse,
+    CategoryDataPoint,
     CreateSavingsGoalRequest,
     SavingsGoalFilterParams,
     SavingsGoalListResponse,
     SavingsGoalResponse,
+    TrendDataPoint,
+    TrendsResponse,
     UpdateSavingsGoalRequest,
 )
+from app.features.transactions.models import Transaction, TransactionType
 
 
 def _goal_to_response(goal: SavingsGoal) -> SavingsGoalResponse:
@@ -136,3 +142,139 @@ class SavingsGoalService:
             page_size=filters.page_size,
             total_pages=total_pages,
         )
+
+
+class AnalyticsService:
+    """Service to handle high-level analytics operations."""
+
+    @staticmethod
+    async def get_overview(db: AsyncSession, user_id: str) -> AnalyticsOverviewResponse:
+        """Get high-level overview: total income, expense, and goal counts."""
+        # Get total income and expense
+        stmt_transactions = (
+            select(Transaction.type, func.sum(Transaction.amount))
+            .where(Transaction.user_id == user_id)
+            .group_by(Transaction.type)
+        )
+        result_tx = await db.execute(stmt_transactions)
+        
+        total_income = 0.0
+        total_expense = 0.0
+        for tx_type, total in result_tx:
+            if tx_type == TransactionType.INCOME:
+                total_income = total or 0.0
+            elif tx_type == TransactionType.EXPENSE:
+                total_expense = total or 0.0
+                
+        # Get goal counts
+        stmt_goals = (
+            select(SavingsGoal.status, func.count(SavingsGoal.id))
+            .where(SavingsGoal.user_id == user_id)
+            .group_by(SavingsGoal.status)
+        )
+        result_goals = await db.execute(stmt_goals)
+        
+        active_goals = 0
+        completed_goals = 0
+        for status, count in result_goals:
+            if status.value == "active":
+                active_goals = count
+            elif status.value == "completed":
+                completed_goals = count
+
+        return AnalyticsOverviewResponse(
+            total_income=total_income,
+            total_expense=total_expense,
+            net_balance=total_income - total_expense,
+            active_goals_count=active_goals,
+            completed_goals_count=completed_goals,
+        )
+
+    @staticmethod
+    async def get_spending_categories(
+        db: AsyncSession, user_id: str, year: int, month: int
+    ) -> CategoriesResponse:
+        """Break down expenses by category for a given month."""
+        from calendar import monthrange
+        import datetime
+        
+        _, last_day = monthrange(year, month)
+        start_date = datetime.date(year, month, 1)
+        end_date = datetime.date(year, month, last_day)
+
+        stmt = (
+            select(Transaction.category, func.sum(Transaction.amount))
+            .where(
+                Transaction.user_id == user_id,
+                Transaction.type == TransactionType.EXPENSE,
+                Transaction.date >= start_date,
+                Transaction.date <= end_date,
+            )
+            .group_by(Transaction.category)
+        )
+        
+        result = await db.execute(stmt)
+        categories_data = result.all()
+        
+        total_expense = sum(amount for _, amount in categories_data) if categories_data else 0.0
+        
+        points = []
+        for category, amount in categories_data:
+            cat_name = category.value if hasattr(category, "value") else str(category)
+            pct = round((amount / total_expense) * 100, 2) if total_expense > 0 else 0.0
+            points.append(CategoryDataPoint(category=cat_name, amount=amount or 0.0, percentage=pct))
+            
+        points.sort(key=lambda x: x.amount, reverse=True)
+        return CategoriesResponse(categories=points)
+
+    @staticmethod
+    async def get_trends(
+        db: AsyncSession, user_id: str, year: int
+    ) -> TrendsResponse:
+        """Get monthly income vs expense trends for a specific year."""
+        import datetime
+        
+        start_date = datetime.date(year, 1, 1)
+        end_date = datetime.date(year, 12, 31)
+
+        stmt = (
+            select(
+                func.extract("month", Transaction.date).label("month"),
+                Transaction.type,
+                func.sum(Transaction.amount).label("total")
+            )
+            .where(
+                Transaction.user_id == user_id,
+                Transaction.date >= start_date,
+                Transaction.date <= end_date,
+            )
+            .group_by("month", Transaction.type)
+        )
+        
+        result = await db.execute(stmt)
+        
+        # Initialize 12 months data
+        monthly_data = {m: {"income": 0.0, "expense": 0.0} for m in range(1, 13)}
+        
+        for row in result:
+            month = int(row.month)
+            tx_type = row.type
+            amount = row.total or 0.0
+            
+            if tx_type == TransactionType.INCOME:
+                monthly_data[month]["income"] += amount
+            elif tx_type == TransactionType.EXPENSE:
+                monthly_data[month]["expense"] += amount
+                
+        trends = []
+        for m in range(1, 13):
+            period_str = f"{year}-{m:02d}"
+            trends.append(
+                TrendDataPoint(
+                    period=period_str,
+                    income=monthly_data[m]["income"],
+                    expense=monthly_data[m]["expense"]
+                )
+            )
+            
+        return TrendsResponse(trends=trends)
